@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, Typography, Button } from "@mui/material";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
 import { IoIosCloseCircle } from "react-icons/io";
@@ -10,38 +10,48 @@ const ModalResultados = ({
   kcalPorDia,
   condicaoMensagem,
   voltarModalCondicoes,
+  idadeEscolhida,
 }) => {
-  const [abaAtiva, setAbaAtiva] = useState("prateleira");
+  const [abaAtiva, setAbaAtiva] = useState("naoCongelada");
 
-  const isAutoclavada = (nome) => {
-    const autoclavadas = [
+  // Nova função padronizada
+  const isNaoCongelada = (nome) => {
+    const dietasNaoCongeladas = [
       "Frangolícia",
+      "FrangoLícia",
       "Picadinho de Carne",
       "Lombinho Gourmet",
       "Miaulícia",
     ];
-    return autoclavadas.some((d) =>
+    return dietasNaoCongeladas.some((d) =>
       nome.toLowerCase().includes(d.toLowerCase())
     );
   };
 
-  // Checa se existem dietas de cada tipo
-  const temCongelada = resultados.some((r) => !isAutoclavada(r.nome));
-  const temNaoCongelada = resultados.some((r) => isAutoclavada(r.nome));
+  const temCongelada = resultados.some((r) => !isNaoCongelada(r.nome));
+  const temNaoCongelada = resultados.some((r) => isNaoCongelada(r.nome));
 
-  // Se a aba ativa não tiver dietas, muda automaticamente para a que existe
-  React.useEffect(() => {
-    if (abaAtiva === "congelada" && !temCongelada && temNaoCongelada) {
-      setAbaAtiva("prateleira");
-    } else if (abaAtiva === "prateleira" && !temNaoCongelada && temCongelada) {
-      setAbaAtiva("congelada");
+  useEffect(() => {
+    if (idadeEscolhida === "senior") {
+      setAbaAtiva("congelada"); // força aba congelada
+    } else {
+      // ajuste dinâmico
+      if (abaAtiva === "congelada" && !temCongelada && temNaoCongelada) {
+        setAbaAtiva("naoCongelada");
+      } else if (abaAtiva === "naoCongelada" && !temNaoCongelada && temCongelada) {
+        setAbaAtiva("congelada");
+      }
     }
-  }, [temCongelada, temNaoCongelada, abaAtiva]);
+  }, [temCongelada, temNaoCongelada, abaAtiva, idadeEscolhida]);
 
-  // Filtra os resultados conforme a aba
-  const resultadosFiltrados = resultados.filter((r) =>
-    abaAtiva === "prateleira" ? isAutoclavada(r.nome) : !isAutoclavada(r.nome)
-  );
+  const resultadosFiltrados =
+    idadeEscolhida === "senior"
+      ? resultados.filter((r) => !isNaoCongelada(r.nome))
+      : resultados.filter((r) =>
+          abaAtiva === "naoCongelada"
+            ? isNaoCongelada(r.nome)
+            : !isNaoCongelada(r.nome)
+        );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -63,56 +73,52 @@ const ModalResultados = ({
 
         <div className="mb-6 text-center">
           <p className="text-lg font-medium">O seu pet deve consumir:</p>
-          <p className="text-xl font-bold text-[#7f1d1d]">{kcalPorDia} kcal/dia</p>
-        </div>
-
-        {/* Condição física */}
-        <div className="mb-4">
-          <p className="font-semibold text-red-600">
-            {condicaoMensagem
-              .replace(/([A-Z])/g, " $1")
-              .trim()
-              .replace(/\b\w/g, (l) => l.toUpperCase())}
+          <p className="text-xl font-bold text-[#7f1d1d]">
+            {kcalPorDia} kcal/dia
           </p>
         </div>
 
-        {/* Abas (só aparecem se houver dietas na categoria) */}
-        <div className="flex justify-center gap-4 mb-6">
-          {temCongelada && (
-            <button
-              onClick={() => setAbaAtiva("congelada")}
-              className={`px-4 py-2 rounded-md font-semibold transition-all ${
-                abaAtiva === "congelada"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              Congelada
-            </button>
-          )}
-
-          {temNaoCongelada && (
-            <button
-              onClick={() => setAbaAtiva("prateleira")}
-              className={`px-4 py-2 rounded-md font-semibold transition-all ${
-                abaAtiva === "prateleira"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              Não congelada
-            </button>
-          )}
+        <div className="mb-4">
+          <p className="font-semibold text-red-600">{condicaoMensagem}</p>
         </div>
 
-        {/* Lista de dietas */}
+        {idadeEscolhida !== "senior" && (
+          <div className="flex justify-center gap-4 mb-6">
+            {temCongelada && (
+              <button
+                onClick={() => setAbaAtiva("congelada")}
+                className={`px-4 py-2 rounded-md font-semibold transition-all ${
+                  abaAtiva === "congelada"
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+              >
+                Congelada
+              </button>
+            )}
+
+            {temNaoCongelada && (
+              <button
+                onClick={() => setAbaAtiva("naoCongelada")}
+                className={`px-4 py-2 rounded-md font-semibold transition-all ${
+                  abaAtiva === "naoCongelada"
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+              >
+                Não congelada
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {resultadosFiltrados.length > 0 ? (
             resultadosFiltrados.map((resultado, index) => (
               <Card
                 key={index}
                 className={`shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg ${
-                  isAutoclavada(resultado.nome)
+                  isNaoCongelada(resultado.nome)
                     ? "bg-purple-100"
                     : "bg-orange-200"
                 }`}
@@ -127,7 +133,7 @@ const ModalResultados = ({
                   <Typography variant="body2" className="text-center">
                     <span>Quantidade: {resultado.quantidadeDois}g</span>
                   </Typography>
-                  {isAutoclavada(resultado.nome) && (
+                  {isNaoCongelada(resultado.nome) && (
                     <Typography
                       variant="caption"
                       className="block text-center text-purple-600 font-medium mt-1"

@@ -17,6 +17,8 @@ const ModalCondicoes = ({ closeModal, calcular, setCondicaoSelecionada }) => {
     sarcopênico: false,
     disfuncaoCognitiva: false,
     peleSensivel: false,
+    hipercalorica: false,
+    crua: false,
   });
 
   const handleChangeCondicoes = (event) => {

@@ -40,18 +40,16 @@ const Calculo = () => {
     openModalPesoGato();
   };
 
-  // === CORREÇÃO AQUI: use o resultado enviado pelo ModalPesoGato sem referenciar variáveis inexistentes ===
   const handleCalcularGato = (resultadoObj) => {
     if (!resultadoObj || !resultadoObj.dietas) {
       alert("Erro ao calcular a dieta do gato.");
       return;
     }
 
-    // resultadoObj já contém: peso, kcalPorDia e dietas (segundo ModalPesoGato)
     setPesoGato(resultadoObj.peso);
     setResultadoGato(resultadoObj);
 
-    // fechar modal de peso e abrir modal de resultado do gato
+
     closeModalPesoGato();
     openModalResultadoGato();
   };
@@ -102,7 +100,6 @@ const Calculo = () => {
       return;
     }
 
-    // Verificar qual multiplicador aplicar com base na dieta
     let kcalCalculado;
     if (
       condicoes.obesidade ||
@@ -124,7 +121,6 @@ const Calculo = () => {
     let dietas = [];
     let condicaoMensagem = "";
 
-    // Lógica para dietas baseadas em condições físicas
     if (idadeEscolhida === "adulto" || idadeEscolhida === "senior") {
       if (condicoes.renal) {
         condicaoMensagem = "DIETAS COM BAIXO FÓSFORO";
@@ -183,15 +179,31 @@ const Calculo = () => {
           { nome: "Frango Sênior Grain Free", parametro: 100.8 },
           { nome: "Bovino Sênior Grain Free", parametro: 135 },
           { nome: "Peixe Sênior Grain Free", parametro: 103.5 },
+
+          { nome: "Dieta Crua - Bovina", parametro: 100}, 
+          { nome: "Dieta Crua - Frango", parametro: 101},
+
+          { nome: "Dieta Hipercalórica", parametro: 150.2},
         ];
       } else if (condicoes.peleSensivel) {
         condicaoMensagem = "DIETA PELES SENSIVEIS";
         dietas = [
           { nome: "Lombinho Gourmet", parametro: 120},
-          { nome: "Avestruz Peles Sensíveis", parametro: 124.8 },
-          { nome: "Peixe Peles Sensíveis", parametro: 127.5 },
-          { nome: "Peru Peles Sensíveis", parametro: 126.7 },
+          { nome: "Avestruz Peles Sensíveis", parametro: 113 },
+          { nome: "Peixe Peles Sensíveis", parametro: 100 },
+          { nome: "Peru Peles Sensíveis", parametro: 102 },
           { nome: "Suíno Peles Sensíveis", parametro: 147.4 }, 
+        ];
+      } else if (condicoes.crua) {
+        condicaoMensagem = "DIETA CRUA";
+        dietas = [
+          { nome: "Dieta Crua - Bovina", parametro: 100}, 
+          { nome: "Dieta Crua - Frango", parametro: 101},
+        ];
+      } else if (condicoes.hipercalorica) {
+        condicaoMensagem = "DIETA HIPERCALÓRICA";
+        dietas = [
+          { nome: "Dieta Hipercalórica", parametro: 150.2},
         ];
       } else if (
         condicoes.obesidade ||
@@ -218,8 +230,7 @@ const Calculo = () => {
       }
     } else {
       condicaoMensagem = "DIETAS PARA FILHOTES";
-    }
-
+    } 
     const resultadosDietasSegundo = dietas.map((dieta) => {
       const quantidadeDois = (kcalCalculado / dieta.parametro) * 100;
       return { nome: dieta.nome, quantidadeDois: quantidadeDois.toFixed(0) };
@@ -235,8 +246,6 @@ const Calculo = () => {
     openModalCondicoes();
   };
 
-  // Corrige o comportamento de "voltar" no fluxo do gato:
-  // fecha o modal de resultado do gato e reabre o modal de peso
   const voltarGato = () => {
     closeModalResultadoGato();
     openModalPesoGato();
@@ -252,7 +261,6 @@ const Calculo = () => {
 
   return (
     <div className="relative bg-blue-100 min-h-screen">
-      {/* Carousel envia slide ativo pra cá */}
       <div className="absolute inset-0 z-0">
         <Carousel onSlideChange={setAnimalAtual} />
       </div>
@@ -276,25 +284,24 @@ const Calculo = () => {
           />
         )}
 
-        {/* Modal de Condições Físicas e Peso */}
         {isModalCondicoesOpen && (
           <ModalCondicoes
             closeModal={closeModalCondicoes}
             calcular={calcularQuantidade}
             setCondicaoSelecionada={setCondicaoSelecionada}
             idadeEscolhida={idadeEscolhida}
-            voltarModalCondicoes={voltarModalCondicoes} // Passa a função para voltar
+            voltarModalCondicoes={voltarModalCondicoes} 
           />
         )}
 
-        {/* Modal de Resultados */}
         {isModalResultadosOpen && (
           <ModalResultados
             resultados={resultados}
             kcalPorDia={kcalPorDia}
             condicaoMensagem={`Condição Física: ${condicaoSelecionada}`}
             closeModal={closeModalResultados}
-            voltarModalCondicoes={voltarModalCondicoes} // Passa a função para voltar
+            voltarModalCondicoes={voltarModalCondicoes} 
+            idadeEscolhida={idadeEscolhida}
           />
         )}
 
@@ -306,7 +313,6 @@ const Calculo = () => {
           />
         )}
 
-        {/*Modal de idade do gato */}
         {isModalIdadeGatoOpen && (
           <ModalIdadeGato
             open={isModalIdadeGatoOpen}
@@ -315,7 +321,6 @@ const Calculo = () => {
           />
         )}
 
-        {/*Modal de peso do gato */}
         {isModalPesoGatoOpen && (
           <ModalPesoGato
             open={isModalPesoGatoOpen}
@@ -325,14 +330,13 @@ const Calculo = () => {
           />
         )}
 
-        {/*Modal de resultado do gato */}
         {isModalResultadoGatoOpen && (
           <ModalResultadoGato
             resultado={resultadoGato}
             peso={pesoGato}
             idadeGato={idadeGato}
             closeModal={closeModalResultadoGato}
-            voltar={voltarGato} // caso o modal de resultado do gato precise voltar pro peso
+            voltar={voltarGato} 
           />
         )}
       </div>
