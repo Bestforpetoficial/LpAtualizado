@@ -79,9 +79,6 @@ const Calculo = () => {
       { nome: "Peixe Filhote Tradicional", parametro: 128.6 },
       { nome: "Frango Filhote Grain Free", parametro: 131.2 },
       { nome: "Bovino Filhote Grain Free", parametro: 138.8 },
-      { nome: "Frangolícia", parametro: 129},
-      { nome: "Picadinho de Carne", parametro: 137},
-      { nome: "Lombinho Gourmet", parametro: 120},
     ];
 
     const resultadosDietas = dietas.map((dieta) => {
@@ -94,152 +91,158 @@ const Calculo = () => {
     openModalResultados();
   };
 
-  const calcularQuantidade = (peso, condicoes) => {
-    if (!peso || isNaN(peso) || peso <= 0) {
-      alert("peso invalido");
-      return;
-    }
+ const calcularQuantidade = (peso, condicoes) => {
+  if (!peso || isNaN(peso) || peso <= 0) {
+    alert("peso invalido");
+    return;
+  }
 
-    let kcalCalculado;
-    if (
+  const fator =
+    condicoes.obesidade ||
+    condicoes.oncológico ||
+    condicoes.sarcopênico ||
+    condicoes.disfuncaoCognitiva
+      ? 80
+      : 90;
+
+  const kcalCalculado = Math.pow(peso, 0.75) * fator;
+
+  if (isNaN(kcalCalculado)) {
+    alert("Erro no cálculo de calorias!");
+    return;
+  }
+
+  setKcalPorDia(kcalCalculado.toFixed(0));
+
+  let dietas = [];
+  let condicaoMensagem = "";
+
+  const dietasBaixoFosforo = () => [
+    { nome: "Frango Baixo Fósforo", parametro: 111.2 },
+    { nome: "Bovino Baixo Fósforo", parametro: 130.2 },
+    { nome: "Peixe Baixo Fósforo", parametro: 123.7 },
+    { nome: "Bovino Baixo Fósforo Grain Free", parametro: 135 },
+    { nome: "Suíno Baixo Fósforo Grain Free", parametro: 139.4 },
+    { nome: "Peixe Baixo Fósforo Grain Free", parametro: 113.8 },
+  ];
+
+  const dietasLowFat = () => [
+    { nome: "Frango Low Fat", parametro: 103 },
+    { nome: "Peixe Low Fat", parametro: 83.2 },
+    { nome: "Frango Low Fat Grain Free", parametro: 90 },
+  ];
+
+  const dietasPelesSensiveis = () => [
+    { nome: "Lombinho Gourmet", parametro: 120 },
+    { nome: "Avestruz Peles Sensíveis", parametro: 113 },
+    { nome: "Peixe Peles Sensíveis", parametro: 100 },
+    { nome: "Peru Peles Sensíveis", parametro: 102 },
+    { nome: "Suíno Peles Sensíveis", parametro: 147.4 },
+  ];
+
+  const dietasCruas = () => [
+    { nome: "Dieta Crua - Bovina", parametro: 100 },
+    { nome: "Dieta Crua - Frango", parametro: 101 },
+  ];
+
+  const dietasHipercaloricas = () => [
+    { nome: "Dieta Hipercalórica", parametro: 150.2 },
+  ];
+
+  const dietasUltraLowCarb = () => [
+    { nome: "Frango Ultra Low Carb", parametro: 124.8 },
+    { nome: "Bovino Ultra Low Carb", parametro: 124.6 },
+    { nome: "Suíno Ultra Low Carb", parametro: 124.6 },
+    { nome: "Frango Ultra Low Carb Grain Free", parametro: 111.8 },
+    { nome: "Bovino Ultra Low Carb Grain Free", parametro: 112.4 },
+    { nome: "Frango Low Carb", parametro: 114.8 },
+    { nome: "Bovino Low Carb", parametro: 136.54 },
+    { nome: "Suíno Low Carb", parametro: 138.4 },
+    { nome: "Peixe Low Carb", parametro: 104.2 },
+    { nome: "Frango Low Carb Grain Free", parametro: 136 },
+    { nome: "Bovino Low Carb Grain Free", parametro: 159.2 },
+    { nome: "Peixe Low Carb Grain Free", parametro: 114.4 },
+  ];
+
+  const dietasAdultoSaudavel = () => [
+    { nome: "FrangoLícia", parametro: 129 },
+    { nome: "Picadinho de Carne", parametro: 137 },
+
+    { nome: "Frango Adulto Tradicional", parametro: 130.4 },
+    { nome: "Bovino Adulto Tradicional", parametro: 141.2 },
+    { nome: "Suíno Adulto Tradicional", parametro: 136 },
+    { nome: "Peixe Adulto Tradicional", parametro: 114.8 },
+    { nome: "Frango Adulto Grain Free", parametro: 127.8 },
+    { nome: "Bovino Adulto Grain Free", parametro: 123 },
+    { nome: "Suíno Adulto Grain Free", parametro: 124 },
+    { nome: "Peixe Adulto Grain Free", parametro: 100.2 },
+  ];
+
+  const dietasSeniorSaudavel = () => [
+    { nome: "FrangoLícia", parametro: 129 },
+    { nome: "Picadinho de Carne", parametro: 137 },
+
+    { nome: "Frango Sênior Tradicional", parametro: 111.2 },
+    { nome: "Bovino Sênior Tradicional", parametro: 130.2 },
+    { nome: "Peixe Sênior Tradicional", parametro: 104 },
+    { nome: "Frango Sênior Grain Free", parametro: 100.8 },
+    { nome: "Bovino Sênior Grain Free", parametro: 135 },
+    { nome: "Peixe Sênior Grain Free", parametro: 103.5 },
+  ];
+
+  if (idadeEscolhida === "adulto" || idadeEscolhida === "senior") {
+    if (condicoes.renal) {
+      condicaoMensagem = "DIETAS COM BAIXO FÓSFORO";
+      dietas = dietasBaixoFosforo();
+    } else if (
+      condicoes.gastrointestinais ||
+      condicoes.hepatopatia ||
+      condicoes.pancreatite ||
+      condicoes.hiperlipidemia ||
+      condicoes.cushing
+    ) {
+      condicaoMensagem = "DIETAS LOW FAT";
+      dietas = dietasLowFat();
+    } else if (condicoes.peleSensivel) {
+      condicaoMensagem = "DIETA PELES SENSIVEIS";
+      dietas = dietasPelesSensiveis();
+    } else if (condicoes.crua) {
+      condicaoMensagem = "DIETA CRUA";
+      dietas = dietasCruas();
+    } else if (condicoes.hipercalorica) {
+      condicaoMensagem = "DIETA HIPERCALÓRICA";
+      dietas = dietasHipercaloricas();
+    } else if (
       condicoes.obesidade ||
+      condicoes.diabetico ||
       condicoes.oncológico ||
       condicoes.sarcopênico ||
       condicoes.disfuncaoCognitiva
     ) {
-      kcalCalculado = Math.pow(peso, 0.75) * 80;
-    } else {
-      kcalCalculado = Math.pow(peso, 0.75) * 90;
-    }
-
-    if (isNaN(kcalCalculado)) {
-      alert("Erro no cálculo de calorias!");
-      return;
-    }
-
-    setKcalPorDia(kcalCalculado.toFixed(0));
-    let dietas = [];
-    let condicaoMensagem = "";
-
-    if (idadeEscolhida === "adulto" || idadeEscolhida === "senior") {
-      if (condicoes.renal) {
-        condicaoMensagem = "DIETAS COM BAIXO FÓSFORO";
-        dietas = [
-          { nome: "Frango Baixo Fósforo", parametro: 111.2 },
-          { nome: "Bovino Baixo Fósforo", parametro: 130.2 },
-          { nome: "Peixe Baixo Fósforo", parametro: 123.7 },
-          { nome: "Bovino Baixo Fósforo Grain Free", parametro: 135 },
-          { nome: "Suíno Baixo Fósforo Grain Free", parametro: 139.4 },
-          { nome: "Peixe Baixo Fósforo Grain Free", parametro: 113.8 },
-        ];
-      } else if (
-        condicoes.gastrointestinais ||
-        condicoes.hepatopatia ||
-        condicoes.pancreatite ||
-        condicoes.hiperlipidemia ||
-        condicoes.cushing
-      ) {
-        condicaoMensagem = "DIETAS LOW FAT";
-        dietas = [
-          { nome: "Frango Low Fat", parametro: 103 },
-          { nome: "Peixe Low Fat", parametro: 83.2 },
-          { nome: "Frango Low Fat Grain Free", parametro: 90 },
-        ];
-      } else if (condicoes.saudável) {
-        condicaoMensagem = "DIETAS DE MANUTENÇÃO";
-        dietas = [
-          { nome: "FrangoLícia", parametro: 129},
-          { nome: "Picadinho de Carne", parametro: 137},
-
-          { nome: "Frango Adulto Tradicional", parametro: 130.4 },
-          { nome: "Bovino Adulto Tradicional", parametro: 141.2 },
-          { nome: "Suíno Adulto Tradicional", parametro: 136 },
-          { nome: "Peixe Adulto Tradicional", parametro: 114.8 },
-
-          { nome: "Frango Adulto Grain Free", parametro: 127.8 },
-          { nome: "Bovino Adulto Grain Free", parametro: 123 },
-          { nome: "Suíno Adulto Grain Free", parametro: 124 },
-          { nome: "Peixe Adulto Grain Free", parametro: 100.2 },
-
-          { nome: "Frango Essencial", parametro: 138 },
-          { nome: "Bovino Essencial", parametro: 151.5 },
-          { nome: "Suíno Essencial", parametro: 153 },
-
-          { nome: "Frango Essencial Grain Free", parametro: 128 },
-          { nome: "Bovino Essencial Grain Free", parametro: 138.5 },
-          { nome: "Suíno Essencial Grain Free", parametro: 143 },
-
-          { nome: "Dieta Crua - Bovina", parametro: 100 },
-          { nome: "Dieta Crua - Frango", parametro: 101 },
-
-          { nome: "Frango Sênior Tradicional", parametro: 111.2 },
-          { nome: "Bovino Sênior Tradicional", parametro: 130.2 },
-          { nome: "Peixe Sênior Tradicional", parametro: 104 },
-
-          { nome: "Frango Sênior Grain Free", parametro: 100.8 },
-          { nome: "Bovino Sênior Grain Free", parametro: 135 },
-          { nome: "Peixe Sênior Grain Free", parametro: 103.5 },
-
-          { nome: "Dieta Crua - Bovina", parametro: 100}, 
-          { nome: "Dieta Crua - Frango", parametro: 101},
-
-          { nome: "Dieta Hipercalórica", parametro: 150.2},
-        ];
-      } else if (condicoes.peleSensivel) {
-        condicaoMensagem = "DIETA PELES SENSIVEIS";
-        dietas = [
-          { nome: "Lombinho Gourmet", parametro: 120},
-          { nome: "Avestruz Peles Sensíveis", parametro: 113 },
-          { nome: "Peixe Peles Sensíveis", parametro: 100 },
-          { nome: "Peru Peles Sensíveis", parametro: 102 },
-          { nome: "Suíno Peles Sensíveis", parametro: 147.4 }, 
-        ];
-      } else if (condicoes.crua) {
-        condicaoMensagem = "DIETA CRUA";
-        dietas = [
-          { nome: "Dieta Crua - Bovina", parametro: 100}, 
-          { nome: "Dieta Crua - Frango", parametro: 101},
-        ];
-      } else if (condicoes.hipercalorica) {
-        condicaoMensagem = "DIETA HIPERCALÓRICA";
-        dietas = [
-          { nome: "Dieta Hipercalórica", parametro: 150.2},
-        ];
-      } else if (
-        condicoes.obesidade ||
-        condicoes.diabetico ||
-        condicoes.oncológico ||
-        condicoes.sarcopênico ||
-        condicoes.disfuncaoCognitiva
-      ) {
-        condicaoMensagem = "DIETAS ULTRA LOW CARB";
-        dietas = [
-          { nome: "Frango Ultra Low Carb", parametro: 124.8 },
-          { nome: "Bovino Ultra Low Carb", parametro: 124.6 },
-          { nome: "Suíno Ultra Low Carb", parametro: 124.6 },
-          { nome: "Frango Ultra Low Carb Grain Free", parametro: 111.8 },
-          { nome: "Bovino Ultra Low Carb Grain Free", parametro: 112.4 },
-          { nome: "Frango Low Carb", parametro: 114.8 },
-          { nome: "Bovino Low Carb", parametro: 136.54 },
-          { nome: "Suíno Low Carb", parametro: 138.4 },
-          { nome: "Peixe Low Carb", parametro: 104.2 },
-          { nome: "Frango Low Carb Grain Free", parametro: 136 },
-          { nome: "Bovino Low Carb Grain Free", parametro: 159.2 },
-          { nome: "Peixe Low Carb Grain Free", parametro: 114.4 },
-        ];
+      condicaoMensagem = "DIETAS ULTRA LOW CARB";
+      dietas = dietasUltraLowCarb();
+    } else if (condicoes.saudável) {
+      condicaoMensagem = "DIETAS DE MANUTENÇÃO";
+      if (idadeEscolhida === "adulto") {
+        dietas = dietasAdultoSaudavel();
+      } else {
+        dietas = dietasSeniorSaudavel();
       }
-    } else {
-      condicaoMensagem = "DIETAS PARA FILHOTES";
-    } 
-    const resultadosDietasSegundo = dietas.map((dieta) => {
-      const quantidadeDois = (kcalCalculado / dieta.parametro) * 100;
-      return { nome: dieta.nome, quantidadeDois: quantidadeDois.toFixed(0) };
-    });
+    }
+  } else {
+    condicaoMensagem = "DIETAS PARA FILHOTES";
+  }
 
-    setResultados(resultadosDietasSegundo);
-    closeModalCondicoes();
-    openModalResultados();
-  };
+  const resultadosDietas = dietas.map((dieta) => ({
+    nome: dieta.nome,
+    quantidadeDois: ((kcalCalculado / dieta.parametro) * 100).toFixed(0),
+  }));
+
+  setResultados(resultadosDietas);
+  closeModalCondicoes();
+  openModalResultados();
+};
+
 
   const voltarModalCondicoes = () => {
     closeModalResultados();

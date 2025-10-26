@@ -12,50 +12,52 @@ const ModalResultados = ({
   voltarModalCondicoes,
   idadeEscolhida,
 }) => {
+  // Aba padrão
   const [abaAtiva, setAbaAtiva] = useState("naoCongelada");
 
-  // Nova função padronizada
+  // ✅ Função robusta para identificar dietas não congeladas
+  // ignora acentos, diferenças de caixa e pequenas variações de grafia
   const isNaoCongelada = (nome) => {
-    const dietasNaoCongeladas = [
-      "Frangolícia",
-      "FrangoLícia",
-      "Picadinho de Carne",
-      "Lombinho Gourmet",
-      "Miaulícia",
+    const padrao = [
+      "frangolicia",
+      "frango licia",
+      "frango lícia",
+      "picadinho de carne",
+      "lombinho gourmet",
+      "miaulicia",
+      "miaulícia",
     ];
-    return dietasNaoCongeladas.some((d) =>
-      nome.toLowerCase().includes(d.toLowerCase())
-    );
+    const nomeNormalizado = nome
+      .normalize("NFD") // separa acentos
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .toLowerCase(); // caixa baixa
+    return padrao.some((d) => nomeNormalizado.includes(d));
   };
 
+  // ✅ Detecta automaticamente se há dietas congeladas e não congeladas
   const temCongelada = resultados.some((r) => !isNaoCongelada(r.nome));
   const temNaoCongelada = resultados.some((r) => isNaoCongelada(r.nome));
 
+  // ✅ Ajusta automaticamente a aba ativa conforme o tipo disponível
   useEffect(() => {
-    if (idadeEscolhida === "senior") {
-      setAbaAtiva("congelada"); // força aba congelada
-    } else {
-      // ajuste dinâmico
-      if (abaAtiva === "congelada" && !temCongelada && temNaoCongelada) {
-        setAbaAtiva("naoCongelada");
-      } else if (abaAtiva === "naoCongelada" && !temNaoCongelada && temCongelada) {
-        setAbaAtiva("congelada");
-      }
+    if (!temCongelada && temNaoCongelada) {
+      setAbaAtiva("naoCongelada");
+    } else if (!temNaoCongelada && temCongelada) {
+      setAbaAtiva("congelada");
     }
-  }, [temCongelada, temNaoCongelada, abaAtiva, idadeEscolhida]);
+  }, [temCongelada, temNaoCongelada]);
 
-  const resultadosFiltrados =
-    idadeEscolhida === "senior"
-      ? resultados.filter((r) => !isNaoCongelada(r.nome))
-      : resultados.filter((r) =>
-          abaAtiva === "naoCongelada"
-            ? isNaoCongelada(r.nome)
-            : !isNaoCongelada(r.nome)
-        );
+  // ✅ Filtragem unificada (agora funciona para sênior também)
+  const resultadosFiltrados = resultados.filter((r) =>
+    abaAtiva === "naoCongelada"
+      ? isNaoCongelada(r.nome)
+      : !isNaoCongelada(r.nome)
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[70vh] overflow-y-auto">
+        {/* Cabeçalho */}
         <div className="flex justify-between items-center">
           <FaArrowAltCircleLeft
             onClick={voltarModalCondicoes}
@@ -71,6 +73,7 @@ const ModalResultados = ({
           Resultado do Cálculo
         </h2>
 
+        {/* kcal */}
         <div className="mb-6 text-center">
           <p className="text-lg font-medium">O seu pet deve consumir:</p>
           <p className="text-xl font-bold text-[#7f1d1d]">
@@ -78,40 +81,39 @@ const ModalResultados = ({
           </p>
         </div>
 
+        {/* Condição */}
         <div className="mb-4">
           <p className="font-semibold text-red-600">{condicaoMensagem}</p>
         </div>
 
-        {idadeEscolhida !== "senior" && (
+        {/* Botões de aba (não são exibidos se só há um tipo) */}
+        {(temCongelada && temNaoCongelada) && (
           <div className="flex justify-center gap-4 mb-6">
-            {temCongelada && (
-              <button
-                onClick={() => setAbaAtiva("congelada")}
-                className={`px-4 py-2 rounded-md font-semibold transition-all ${
-                  abaAtiva === "congelada"
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
-                }`}
-              >
-                Congelada
-              </button>
-            )}
+            <button
+              onClick={() => setAbaAtiva("congelada")}
+              className={`px-4 py-2 rounded-md font-semibold transition-all ${
+                abaAtiva === "congelada"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              Congelada
+            </button>
 
-            {temNaoCongelada && (
-              <button
-                onClick={() => setAbaAtiva("naoCongelada")}
-                className={`px-4 py-2 rounded-md font-semibold transition-all ${
-                  abaAtiva === "naoCongelada"
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
-                }`}
-              >
-                Não congelada
-              </button>
-            )}
+            <button
+              onClick={() => setAbaAtiva("naoCongelada")}
+              className={`px-4 py-2 rounded-md font-semibold transition-all ${
+                abaAtiva === "naoCongelada"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              Não congelada
+            </button>
           </div>
         )}
 
+        {/* Resultados filtrados */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {resultadosFiltrados.length > 0 ? (
             resultadosFiltrados.map((resultado, index) => (
@@ -149,6 +151,7 @@ const ModalResultados = ({
           )}
         </div>
 
+        {/* Botão de WhatsApp */}
         <div className="text-center mt-6">
           <Button
             variant="contained"
