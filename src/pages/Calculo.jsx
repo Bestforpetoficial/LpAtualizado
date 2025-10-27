@@ -176,6 +176,9 @@ const Calculo = () => {
     { nome: "Bovino Adulto Grain Free", parametro: 123 },
     { nome: "Suíno Adulto Grain Free", parametro: 124 },
     { nome: "Peixe Adulto Grain Free", parametro: 100.2 },
+
+    { nome: "Dieta Transição Peru", parametro: 143.2},
+    { nome: "Dieta Transição Suíno", parametro: 168.5},
   ];
 
   const dietasSeniorSaudavel = () => [
