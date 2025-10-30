@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Checkbox, FormControlLabel, TextField } from "@mui/material";
 
-const ModalCondicoes = ({ closeModal, calcular, setCondicaoSelecionada }) => {
+const ModalCondicoes = ({ closeModal, calcular, setCondicaoSelecionada, idadeEscolhida }) => {
   const [peso, setPeso] = useState("");
   const [condicoes, setCondicoes] = useState({
     saudável: false,
@@ -65,13 +65,27 @@ const ModalCondicoes = ({ closeModal, calcular, setCondicaoSelecionada }) => {
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-4 mt-2">Selecione a Condição Física do Pet:</h3>
-          {Object.keys(condicoes).map(cond => (
-            <FormControlLabel
-              key={cond}
-              control={<Checkbox checked={condicoes[cond]} onChange={handleChangeCondicoes} name={cond} />}
-              label={cond.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-            />
-          ))}
+
+          {Object.keys(condicoes)
+            // 👇 Oculta a opção "crua" se for cachorro sênior
+            .filter(cond => !(idadeEscolhida === "senior" && cond === "crua"))
+            .map(cond => (
+              <FormControlLabel
+                key={cond}
+                control={
+                  <Checkbox
+                    checked={condicoes[cond]}
+                    onChange={handleChangeCondicoes}
+                    name={cond}
+                  />
+                }
+                label={
+                  cond === "disfuncaoCognitiva"
+                    ? "Disfunção Cognitiva"
+                    : cond.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())
+                }
+              />
+            ))}
         </div>
         
         <Button
@@ -84,7 +98,6 @@ const ModalCondicoes = ({ closeModal, calcular, setCondicaoSelecionada }) => {
           Calcular
         </Button>
 
-        {/* Responsividade do botão "Fechar" */}
         <div className="flex justify-end sm:justify-start mt-4">
           <Button onClick={closeModal} variant="outlined" color="error" fullWidth>
             Fechar

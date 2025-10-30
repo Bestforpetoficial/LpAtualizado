@@ -117,6 +117,7 @@ const Calculo = () => {
   let dietas = [];
   let condicaoMensagem = "";
 
+  // --- LISTAS DE DIETAS ---
   const dietasBaixoFosforo = () => [
     { nome: "Frango Baixo Fósforo", parametro: 111.2 },
     { nome: "Bovino Baixo Fósforo", parametro: 130.2 },
@@ -149,12 +150,17 @@ const Calculo = () => {
     { nome: "Dieta Hipercalórica", parametro: 150.2 },
   ];
 
-  const dietasUltraLowCarb = () => [
+  // Somente "Ultra Low Carb" (nome contém "Ultra")
+  const dietasUltraLowCarbOnly = () => [
     { nome: "Frango Ultra Low Carb", parametro: 124.8 },
     { nome: "Bovino Ultra Low Carb", parametro: 124.6 },
     { nome: "Suíno Ultra Low Carb", parametro: 124.6 },
     { nome: "Frango Ultra Low Carb Grain Free", parametro: 111.8 },
     { nome: "Bovino Ultra Low Carb Grain Free", parametro: 112.4 },
+  ];
+
+  // Somente as variações "Low Carb" (nome contém "Low Carb" / "Low Carb Grain Free" / "Frango Low Carb" etc)
+  const dietasLowCarbOnly = () => [
     { nome: "Frango Low Carb", parametro: 114.8 },
     { nome: "Bovino Low Carb", parametro: 136.54 },
     { nome: "Suíno Low Carb", parametro: 138.4 },
@@ -162,12 +168,12 @@ const Calculo = () => {
     { nome: "Frango Low Carb Grain Free", parametro: 136 },
     { nome: "Bovino Low Carb Grain Free", parametro: 159.2 },
     { nome: "Peixe Low Carb Grain Free", parametro: 114.4 },
+    // se tiver outras Low Carb coloque aqui
   ];
 
   const dietasAdultoSaudavel = () => [
     { nome: "FrangoLícia", parametro: 129 },
     { nome: "Picadinho de Carne", parametro: 137 },
-
     { nome: "Frango Adulto Tradicional", parametro: 130.4 },
     { nome: "Bovino Adulto Tradicional", parametro: 141.2 },
     { nome: "Suíno Adulto Tradicional", parametro: 136 },
@@ -176,15 +182,17 @@ const Calculo = () => {
     { nome: "Bovino Adulto Grain Free", parametro: 123 },
     { nome: "Suíno Adulto Grain Free", parametro: 124 },
     { nome: "Peixe Adulto Grain Free", parametro: 100.2 },
-
-    { nome: "Dieta Transição Peru", parametro: 143.2},
-    { nome: "Dieta Transição Suíno", parametro: 168.5},
+    { nome: "Dieta Transição Peru", parametro: 143.2 },
+    { nome: "Dieta Transição Suíno", parametro: 168.5 },
+    { nome: "Frango Essencial", parametro: 138 },
+    { nome: "Bovino Essencial", parametro: 151.5 },
+    { nome: "Suíno Essencial", parametro: 153 },
+    { nome: "Frango Essencial Grain Free", parametro: 128 },
+    { nome: "Bovino Essencial Grain Free", parametro: 138.5 },
+    { nome: "Suíno Essencial Grain Free", parametro: 143 },
   ];
 
   const dietasSeniorSaudavel = () => [
-    { nome: "FrangoLícia", parametro: 129 },
-    { nome: "Picadinho de Carne", parametro: 137 },
-
     { nome: "Frango Sênior Tradicional", parametro: 111.2 },
     { nome: "Bovino Sênior Tradicional", parametro: 130.2 },
     { nome: "Peixe Sênior Tradicional", parametro: 104 },
@@ -192,6 +200,11 @@ const Calculo = () => {
     { nome: "Bovino Sênior Grain Free", parametro: 135 },
     { nome: "Peixe Sênior Grain Free", parametro: 103.5 },
   ];
+
+  // --- LÓGICA PRINCIPAL ---
+  // Flag: bloqueia apenas as dietas "Low Carb" para estas condições
+  const bloqueiaLowCarb =
+    condicoes.diabetico || condicoes.oncológico || condicoes.sarcopênico || condicoes.disfuncaoCognitiva;
 
   if (idadeEscolhida === "adulto" || idadeEscolhida === "senior") {
     if (condicoes.renal) {
@@ -207,30 +220,26 @@ const Calculo = () => {
       condicaoMensagem = "DIETAS LOW FAT";
       dietas = dietasLowFat();
     } else if (condicoes.peleSensivel) {
-      condicaoMensagem = "DIETA PELES SENSIVEIS";
+      condicaoMensagem = "DIETA PELES SENSÍVEIS";
       dietas = dietasPelesSensiveis();
-    } else if (condicoes.crua) {
+    } else if (condicoes.crua && idadeEscolhida === "adulto") {
       condicaoMensagem = "DIETA CRUA";
       dietas = dietasCruas();
     } else if (condicoes.hipercalorica) {
       condicaoMensagem = "DIETA HIPERCALÓRICA";
       dietas = dietasHipercaloricas();
-    } else if (
-      condicoes.obesidade ||
-      condicoes.diabetico ||
-      condicoes.oncológico ||
-      condicoes.sarcopênico ||
-      condicoes.disfuncaoCognitiva
-    ) {
-      condicaoMensagem = "DIETAS ULTRA LOW CARB";
-      dietas = dietasUltraLowCarb();
+    } else if (condicoes.obesidade || condicoes.oncológico || condicoes.sarcopênico || condicoes.disfuncaoCognitiva || condicoes.diabetico) {
+      // Caso geral para condições que costumam usar "carb-control":
+      // mostramos as ULTRA LOW CARB sempre, e adicionamos LOW CARB somente se NÃO estiverem na lista bloqueada.
+      condicaoMensagem = bloqueiaLowCarb ? "DIETAS (ULTRA LOW CARB — SEM LOW CARB)" : "DIETAS ULTRA / LOW CARB";
+      dietas = dietasUltraLowCarbOnly();
+      if (!bloqueiaLowCarb) {
+        // quando não bloqueado, concatena também as Low Carb
+        dietas = dietas.concat(dietasLowCarbOnly());
+      }
     } else if (condicoes.saudável) {
       condicaoMensagem = "DIETAS DE MANUTENÇÃO";
-      if (idadeEscolhida === "adulto") {
-        dietas = dietasAdultoSaudavel();
-      } else {
-        dietas = dietasSeniorSaudavel();
-      }
+      dietas = idadeEscolhida === "adulto" ? dietasAdultoSaudavel() : dietasSeniorSaudavel();
     }
   } else {
     condicaoMensagem = "DIETAS PARA FILHOTES";
