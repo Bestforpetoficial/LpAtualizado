@@ -21,7 +21,7 @@ const Home = () => {
                             Comida de verdade! <br /> Petiscos e dietas personalizadas <br /> para cães e gatos.
                         </h1>
                         <a href="https://api.whatsapp.com/send?phone=5519996042970&text=" id="home-btn" target="_blank" className="text-white bg-red-600 py-2 px-6 rounded-lg hover:bg-red-700">
-                            Faça já seu pedido
+                            Faça já seu pedido por WhatsApp
                         </a>
                     </div>
                 </div>
